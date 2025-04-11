@@ -43,8 +43,8 @@ def main(args):
         pass
 
     ### WRITE YOUR CODE HERE to do any other data processing
-    #xtrain_processed = preprocess_data(xtrain)
-    #ytrain_weighted = calculate_sample_weights(ytrain)
+    xtrain_processed = preprocess_data(xtrain)
+    ytrain_weighted = calculate_sample_weights(ytrain)
 
     ## 3. Initialize the method you want to use.
 

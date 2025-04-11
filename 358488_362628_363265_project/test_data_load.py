@@ -23,6 +23,9 @@ for i, c in zip(values, counts):
 
 # Function concept for data preprocessing
 # Work in progress!
+# %%
+# Function concept for data preprocessing
+# Work in progress!
 def preprocess_data(X_train):
     # Feature values as seen in the block above
     categorical_features = {
@@ -46,11 +49,9 @@ def preprocess_data(X_train):
 
     # Processing
     # Integer types: as seen in exercise series: subtract expectation, divide by standard deviation
-    X_numerical_train = X_train[numerical_features.get('numerical_features_indices')]
-
+    X_numerical_train = X_train[:, numerical_features['numerical_features_indices']]
     X_train_mean = np.mean(X_numerical_train, axis=0)
     X_train_std = np.std(X_numerical_train, axis=0)
-
     X_numerical_train_scaled = (X_numerical_train - X_train_mean) / X_train_std
 
     # Now we have arrays containing preprocessed integer types - they should be "merged" with categorical features somehow.
@@ -58,7 +59,7 @@ def preprocess_data(X_train):
     # Categorical types: a reasonable course of action is to do one-hot encoding
     # This would ensure there are less/no problems with predictions skewing towards greater values (in abs. value)
 
-    X_categorical_train = X_train[categorical_features.get('categorical_features_indices')]
+    X_categorical_train = X_train[:, categorical_features['categorical_features_indices']]
 
     # Initiate returned values to the numerical processed values
     processed_X_train = X_numerical_train_scaled
