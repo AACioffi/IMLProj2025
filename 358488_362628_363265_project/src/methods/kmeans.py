@@ -32,6 +32,8 @@ class KMeans(object):
         k = len(np.unique(training_labels)) #number of clusters
         D = training_data.shape[1] #number of features
         self.centroids = np.zeros((k, D)) #centroids initialization
+        rd_index = np.random.choice(training_data.shape[0], size=k, replace=False)
+        self.centroids = training_data[rd_index] #Initializing the k centroids to k random samples
         pred_labels = np.zeros(training_data.shape[0])
 
         for iteration in range(self.max_iters):
