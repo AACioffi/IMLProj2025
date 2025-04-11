@@ -1,5 +1,5 @@
 import numpy as np
-import itertools
+from collections import Counter
 
 
 class KMeans(object):
@@ -30,21 +30,30 @@ class KMeans(object):
         """
 
         k = len(np.unique(training_labels)) #number of clusters
-        D = training_data.shape[1] #number of features
-        self.centroids = np.zeros((k, D)) #centroids initialization
-        rd_index = np.random.choice(training_data.shape[0], size=k, replace=False)
-        self.centroids = training_data[rd_index] #Initializing the k centroids to k random samples
-        pred_labels = np.zeros(training_data.shape[0])
+        N = training_data.shape[0]
 
+        rd_index = np.random.choice(N, size=k, replace=False)
+        self.centroids = training_data[rd_index] #Initializing the k centroids to k random samples
+        pred_centroids = np.zeros(N, dtype=int)
         for iteration in range(self.max_iters):
-            for i in range(training_data.shape[0]):
+            for i in range(N):
                 distances = np.zeros(k)
                 for j in range(k):
                     distances[j] = np.linalg.norm(training_data[i] - self.centroids[j])
-                pred_labels[i] = np.argmin(distances)
+                pred_centroids[i] = np.argmin(distances)
             for i in range(k):
-                assigned = training_data[pred_labels == i] #extracts all samples assigned to centroid i
+                assigned = training_data[pred_centroids == i] #extracts all samples assigned to centroid i
                 self.centroids[i] = assigned.mean(axis=0)
+
+        self.best_permutation = np.zeros(k)
+        for i in range(k):
+            cluster_labels = training_labels[pred_centroids == i] #extracts all labels contained in cluster i
+            # Finds most common label in the cluster i and assigns it to best_permutation at index i
+            self.best_permutation[i] = Counter(cluster_labels).most_common(1)[0][0]
+
+        pred_labels = np.zeros(N)
+        for i in range(N):
+            pred_labels[i] = self.best_permutation[pred_centroids[i]]
 
         return pred_labels
 
@@ -65,6 +74,6 @@ class KMeans(object):
             distances = np.zeros(k)
             for j in range(k):
                 distances[j] = np.linalg.norm(test_data[i] - self.centroids[j])
-            test_labels[i] = np.argmin(distances)
+            test_labels[i] = self.best_permutation[np.argmin(distances)]
 
         return test_labels
