@@ -8,6 +8,8 @@ from src.methods.logistic_regression import LogisticRegression
 from src.methods.knn import KNN
 from src.methods.kmeans import KMeans
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn
+from test_data_load import preprocess_data
+from test_data_load import calculate_sample_weights
 import os
 
 np.random.seed(100)
@@ -23,10 +25,9 @@ def main(args):
                           of this file). Their value can be accessed as "args.argument".
     """
     ## 1. First, we load our data
-
     # EXTRACTED FEATURES DATASET
     if args.data_type == "features":
-        feature_data = np.load("features.npz", allow_pickle=True)
+        feature_data = np.load(args.data_path, allow_pickle=True)
         xtrain, xtest = feature_data["xtrain"], feature_data["xtest"]
         ytrain, ytest = feature_data["ytrain"], feature_data["ytest"]
 
@@ -42,6 +43,8 @@ def main(args):
         pass
 
     ### WRITE YOUR CODE HERE to do any other data processing
+    #xtrain_processed = preprocess_data(xtrain)
+    #ytrain_weighted = calculate_sample_weights(ytrain)
 
     ## 3. Initialize the method you want to use.
 
@@ -53,7 +56,10 @@ def main(args):
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
 
-    elif ...:  ### WRITE YOUR CODE HERE
+    elif args.method == "kmeans":
+        method_obj = KMeans(max_iters=500)
+    elif args.method == "logistic_regression":
+        method_obj = LogisticRegression(0.01, max_iters=500)
         pass
 
     ## 4. Train and evaluate the method
