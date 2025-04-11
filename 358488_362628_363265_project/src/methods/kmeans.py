@@ -4,7 +4,7 @@ import itertools
 
 class KMeans(object):
     """
-    kNN classifier object.
+    kMeans classifier object.
     """
 
     def __init__(self, max_iters=500):
@@ -29,11 +29,20 @@ class KMeans(object):
             pred_labels (np.array): labels of shape (N,)
         """
 
-        ##
-        ###
-        #### YOUR CODE HERE!
-        ###
-        ##
+        k = len(np.unique(training_labels)) #number of clusters
+        D = training_data.shape[1] #number of features
+        self.centroids = np.zeros((k, D)) #centroids initialization
+        pred_labels = np.zeros(training_data.shape[0])
+
+        for iteration in range(self.max_iters):
+            for i in range(training_data.shape[0]):
+                distances = np.zeros(k)
+                for j in range(k):
+                    distances[j] = np.linalg.norm(training_data[i] - self.centroids[j])
+                pred_labels[i] = np.argmin(distances)
+            for i in range(k):
+                assigned = training_data[pred_labels == i] #extracts all samples assigned to centroid i
+                self.centroids[i] = assigned.mean(axis=0)
 
         return pred_labels
 
@@ -46,10 +55,14 @@ class KMeans(object):
         Returns:
             test_labels (np.array): labels of shape (N,)
         """
-        ##
-        ###
-        #### YOUR CODE HERE!
-        ###
-        ##
+        N = test_data.shape[0]
+        test_labels = np.zeros(N)
+        k = len(self.centroids)
+
+        for i in range(N):
+            distances = np.zeros(k)
+            for j in range(k):
+                distances[j] = np.linalg.norm(test_data[i] - self.centroids[j])
+            test_labels[i] = np.argmin(distances)
 
         return test_labels
