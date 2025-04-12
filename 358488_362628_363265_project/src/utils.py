@@ -78,6 +78,7 @@ def accuracy_fn(pred_labels, gt_labels):
     """
     Return the accuracy of the predicted labels.
     """
+    
     return np.mean(pred_labels == gt_labels) * 100.
 
 

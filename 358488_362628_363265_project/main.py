@@ -8,8 +8,8 @@ from src.methods.logistic_regression import LogisticRegression
 from src.methods.knn import KNN
 from src.methods.kmeans import KMeans
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn
-from test_data_load import preprocess_data
-from test_data_load import calculate_sample_weights
+from logireg_preprocess_utils import preprocess_data_logireg
+from logireg_preprocess_utils import calculate_sample_weights_logireg
 import os
 
 np.random.seed(100)
@@ -43,8 +43,11 @@ def main(args):
         pass
 
     ### WRITE YOUR CODE HERE to do any other data processing
-    xtrain_processed = preprocess_data(xtrain)
-    ytrain_weighted = calculate_sample_weights(ytrain)
+    
+    #### PRE-PROCESSING FOR LOGISTIC REGRESSION ###
+    xtrain_processed_logireg, xtest_processed_logireg = preprocess_data_logireg(xtrain, xtest)
+    sample_weights_logireg  = calculate_sample_weights_logireg(ytrain)
+    ###############################################
 
     ## 3. Initialize the method you want to use.
 
@@ -58,14 +61,27 @@ def main(args):
 
     elif args.method == "kmeans":
         method_obj = KMeans(max_iters=500)
+        
     elif args.method == "logistic_regression":
-        method_obj = LogisticRegression(0.01, max_iters=500)
+        # Changing/overwriting args for modularity
+        xtrain = xtrain_processed_logireg
+        xtest = xtest_processed_logireg
+        method_obj = LogisticRegression(0.1, max_iters=2500)
         pass
 
     ## 4. Train and evaluate the method
     # Fit (:=train) the method on the training data for classification task
-    preds_train = method_obj.fit(xtrain, ytrain)
 
+    # Generic fit call
+    #preds_train = method_obj.fit(xtrain, ytrain)
+
+    ### LOGISTIC REGRESSION #############################################
+    # Unweighted training
+    #preds_train = method_obj.fit(xtrain, ytrain)
+    # Weighted training
+    preds_train = method_obj.fit(xtrain, ytrain, sample_weights_logireg)
+    #####################################################################
+    
     # Predict on unseen data
     preds = method_obj.predict(xtest)
 

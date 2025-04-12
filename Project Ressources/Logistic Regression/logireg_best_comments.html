@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>logireg_best_comments</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="logistic-regression-experimental-results">Logistic Regression Experimental Results</h1>
+<h2 id="best-overall-configurations">Best Overall Configurations</h2>
+<h3 id="top-configurations-by-learning-rate">Top Configurations by Learning Rate</h3>
+
+<table>
+<thead>
+<tr>
+<th>Learning Rate</th>
+<th>Weights</th>
+<th>Max Iterations</th>
+<th>Train Accuracy</th>
+<th>Train F1-Score</th>
+<th>Test Accuracy</th>
+<th>Test F1-Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0.1000</strong></td>
+<td>No</td>
+<td>1000</td>
+<td>59.916%</td>
+<td>0.420657</td>
+<td>65.000%</td>
+<td>0.281026</td>
+</tr>
+<tr>
+<td><strong>0.0100</strong></td>
+<td>No</td>
+<td>250-1500</td>
+<td>~68.776%</td>
+<td>~0.520-0.540</td>
+<td>56.667-58.333%</td>
+<td>0.279-0.317</td>
+</tr>
+<tr>
+<td><strong>0.0010</strong></td>
+<td>No</td>
+<td>2500</td>
+<td>69.620%</td>
+<td>0.540809</td>
+<td>56.667%</td>
+<td>0.279683</td>
+</tr>
+<tr>
+<td><strong>0.0001</strong></td>
+<td>Yes</td>
+<td>500-1000</td>
+<td>67.089%</td>
+<td>0.567-0.570</td>
+<td>61.667%</td>
+<td>0.392-0.411</td>
+</tr>
+</tbody>
+</table><h2 id="experimental-observations">Experimental Observations</h2>
+<h3 id="key-findings">Key Findings</h3>
+<ol>
+<li>
+<p><strong>Learning Rate Impact</strong></p>
+<ul>
+<li>Most consistent performance at 0.01 learning rate</li>
+<li>0.0001 learning rate showed surprising effectiveness, especially with sample weights</li>
+<li>Higher learning rates (0.1) showed more variability</li>
+</ul>
+</li>
+<li>
+<p><strong>Sample Weights</strong></p>
+<ul>
+<li>Most pronounced impact at 0.0001 learning rate</li>
+<li>Generally reduced train accuracy</li>
+<li>Mixed effects on test performance</li>
+<li>Particularly effective in balancing model performance at lower learning rates</li>
+</ul>
+</li>
+<li>
+<p><strong>Iterations Trend</strong></p>
+<ul>
+<li>Optimal performance typically around 500-1000 iterations</li>
+<li>Performance often degrades at very high iteration counts (2000-2500)</li>
+<li>Consistent pattern across different learning rates</li>
+</ul>
+</li>
+<li>
+<p><strong>Noteworthy Configurations</strong></p>
+<ul>
+<li>0.0001 LR with weights consistently achieved:
+<ul>
+<li>Highest test accuracy (61.667%)</li>
+<li>Highest test F1-scores (0.392-0.411)</li>
+</ul>
+</li>
+<li>Unweighted models at 0.01 LR showed remarkably stable performance</li>
+</ul>
+</li>
+</ol>
+<h3 id="practical-implications">Practical Implications</h3>
+<ul>
+<li>The choice of learning rate significantly impacts model performance</li>
+<li>Sample weights can help in addressing class imbalance</li>
+<li>Careful tuning of iterations is crucial for optimal results</li>
+</ul>
+<h2 id="recommendations">Recommendations</h2>
+<ol>
+<li>
+<p>For this specific dataset, consider:</p>
+<ul>
+<li>Learning rates around 0.0001 or 0.01</li>
+<li>Iteration counts between 500-1000</li>
+<li>Experimenting with sample weights, especially at lower learning rates</li>
+</ul>
+</li>
+<li>
+<p>Further investigation might involve:</p>
+<ul>
+<li>More granular learning rate exploration</li>
+<li>Additional preprocessing techniques</li>
+<li>Ensemble methods to improve overall performance</li>
+</ul>
+</li>
+</ol>
+</div>
+</body>
+
+</html>
