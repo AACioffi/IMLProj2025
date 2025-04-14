@@ -19,6 +19,7 @@ def preprocess_data_logireg(X_train, X_test=None):
         'numerical_features_indices': [0, 3, 4, 7, 9, 11],
         'numerical_features_names': ['age', 'trestbps', 'chol', 'thalach', 'oldpeak', 'ca']
     }
+
     
     # Processing
     # Integer types: subtract expectation, divide by standard deviation
@@ -46,6 +47,9 @@ def preprocess_data_logireg(X_train, X_test=None):
             for value in possible_values:
                 bin_values_train = (X_train[:, idx] == value).astype(float).reshape(-1, 1)
                 processed_X_train = np.hstack((processed_X_train, bin_values_train))
+
+    # Finally, adding bias term
+    processed_X_train = np.hstack((processed_X_train, np.ones((processed_X_train.shape[0], 1))))
     
     # If test data is provided, preprocess it using training data statistics
     if X_test is not None:
@@ -65,6 +69,9 @@ def preprocess_data_logireg(X_train, X_test=None):
                 for value in possible_values:
                     bin_values_test = (X_test[:, idx] == value).astype(float).reshape(-1, 1)
                     processed_X_test = np.hstack((processed_X_test, bin_values_test))
+
+
+        processed_X_test = np.hstack((processed_X_test, np.ones((processed_X_test.shape[0], 1))))
         
         return processed_X_train, processed_X_test
     

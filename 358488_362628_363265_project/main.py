@@ -66,7 +66,7 @@ def main(args):
         # Changing/overwriting args for modularity
         xtrain = xtrain_processed_logireg
         xtest = xtest_processed_logireg
-        method_obj = LogisticRegression(0.1, max_iters=2500)
+        method_obj = LogisticRegression(0.0001, max_iters=100)
         pass
 
     ## 4. Train and evaluate the method
