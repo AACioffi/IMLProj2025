@@ -65,36 +65,15 @@ def main(args):
     elif args.method == "knn":
         xtrain, xtest = preprocess_data_knn(xtrain, xtest)
 
-        # Cas 1 : on effectue une validation croisée simple sur un k donné
+        # Run K-fold cross-validation if requested
         if args.cross_val:
-            from src.cv_utils import cross_val_knn
+            from src.utils import cross_val_knn  # or wherever your function is
             avg_f1 = cross_val_knn(xtrain, ytrain, k=args.K, folds=5)
             print(f"\n[CV] K={args.K} | Avg F1-score over 5 folds: {avg_f1:.4f}")
-            return
+            return  # Don't train/test on the test set
 
-        # Cas 2 : on cherche automatiquement le meilleur k avec validation croisée
-        if args.find_best_k:
-            from src.cv_utils import cross_val_knn
-            candidate_ks = [1, 3, 5, 7, 9]
-            best_k = None
-            best_f1 = -1
-
-            print("\n Finding best K using 5-fold CV:")
-            for k_try in candidate_ks:
-                f1 = cross_val_knn(xtrain, ytrain, k=k_try, folds=5)
-                print(f"  K={k_try} → Avg F1 = {f1:.4f}")
-                if f1 > best_f1:
-                    best_f1 = f1
-                    best_k = k_try
-
-            print(f"\n Best K found: {best_k} with Avg F1 = {best_f1:.4f}")
-            print(f"Final model will be trained with k = {best_k}")
-            method_obj = KNN(k=best_k)
-
-        else:
-            print(f"Using user-defined k = {args.K}")
-            method_obj = KNN(k=args.K)
-
+        # Otherwise, proceed normally
+        method_obj = KNN(k=args.K)
     
     elif args.method == "kmeans":
         method_obj = KMeans(max_iters=500)
@@ -180,11 +159,6 @@ if __name__ == "__main__":
     action="store_true",
     help="Enable K-fold cross-validation instead of evaluating on the test set"
     )
-    parser.add_argument(
-    "--find_best_k",
-    action="store_true",
-    help="Test multiple K values using cross-validation to find the best one"
-)
 
     # MS2 arguments
     parser.add_argument(
