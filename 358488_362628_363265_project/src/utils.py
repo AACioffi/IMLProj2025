@@ -1,5 +1,41 @@
 import numpy as np
+from src.methods.knn import KNN
 
+def cross_val_knn(X, y, k=3, folds=5, seed=42):
+    """
+    Perform K-fold cross-validation for k-NN.
+
+    Args:
+        X (np.array): data of shape (N, D)
+        y (np.array): labels of shape (N,)
+        k (int): number of neighbors for k-NN
+        folds (int): number of folds to split the data
+        seed (int): for reproducibility
+
+    Returns:
+        float: average macro F1-score across folds
+    """
+    N = X.shape[0]
+    np.random.seed(seed)
+    indices = np.random.permutation(N)
+    fold_size = N // folds
+    f1_scores = []
+
+    for i in range(folds):
+        val_idx = indices[i * fold_size:(i + 1) * fold_size]
+        train_idx = np.setdiff1d(indices, val_idx)
+
+        X_train, y_train = X[train_idx], y[train_idx]
+        X_val, y_val = X[val_idx], y[val_idx]
+
+        model = KNN(k=k)
+        model.fit(X_train, y_train)
+        preds = model.predict(X_val)
+
+        f1 = macrof1_fn(preds, y_val)
+        f1_scores.append(f1)
+
+    return np.mean(f1_scores)
 
 # Generally utilizes
 ##################

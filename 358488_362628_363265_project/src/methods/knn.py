@@ -27,12 +27,10 @@ class KNN(object):
                 pred_labels (np.array): labels of shape (N,)
         """
 
-        ##
-        ###
-        #### YOUR CODE HERE!
-        ###
-        ##
-        return pred_labels
+        self.training_data = training_data
+        self.training_labels = training_labels
+        
+        return self.predict(training_data)
 
     def predict(self, test_data):
         """
@@ -43,9 +41,24 @@ class KNN(object):
             Returns:
                 test_labels (np.array): labels of shape (N,)
         """
-        ##
-        ###
-        #### YOUR CODE HERE!
-        ###
-        ##
+        num_test = test_data.shape[0]
+        test_labels = np.empty(num_test, dtype=self.training_labels.dtype)
+
+        for i in range(num_test):
+            # Compute L2 distances to all training points
+            distances = np.linalg.norm(self.training_data - test_data[i], axis=1)
+
+            # Get indices of k nearest neighbors
+            neighbor_idxs = np.argsort(distances)[:self.k]
+
+            # Get neighbor labels
+            neighbor_labels = self.training_labels[neighbor_idxs]
+
+            if self.task_kind == "classification":
+                # Majority vote
+                test_labels[i] = np.bincount(neighbor_labels.astype(int)).argmax()
+            else:
+                # For regression, take the mean
+                test_labels[i] = np.mean(neighbor_labels)
+
         return test_labels

@@ -10,6 +10,9 @@ from src.methods.kmeans import KMeans
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, mse_fn
 from logireg_preprocess_utils import preprocess_data_logireg
 from logireg_preprocess_utils import calculate_sample_weights_logireg
+from knn_preprocess_utils import preprocess_data_knn
+from src.cv_utils import cross_val_knn
+
 import os
 
 np.random.seed(100)
@@ -59,6 +62,40 @@ def main(args):
     if args.method == "dummy_classifier":
         method_obj = DummyClassifier(arg1=1, arg2=2)
 
+    elif args.method == "knn":
+        xtrain, xtest = preprocess_data_knn(xtrain, xtest)
+
+        # Cas 1 : on effectue une validation croisée simple sur un k donné
+        if args.cross_val:
+            from src.cv_utils import cross_val_knn
+            avg_f1 = cross_val_knn(xtrain, ytrain, k=args.K, folds=5)
+            print(f"\n[CV] K={args.K} | Avg F1-score over 5 folds: {avg_f1:.4f}")
+            return
+
+        # Cas 2 : on cherche automatiquement le meilleur k avec validation croisée
+        if args.find_best_k:
+            from src.cv_utils import cross_val_knn
+            candidate_ks = [1, 3, 5, 7, 9]
+            best_k = None
+            best_f1 = -1
+
+            print("\n Finding best K using 5-fold CV:")
+            for k_try in candidate_ks:
+                f1 = cross_val_knn(xtrain, ytrain, k=k_try, folds=5)
+                print(f"  K={k_try} → Avg F1 = {f1:.4f}")
+                if f1 > best_f1:
+                    best_f1 = f1
+                    best_k = k_try
+
+            print(f"\n Best K found: {best_k} with Avg F1 = {best_f1:.4f}")
+            print(f"Final model will be trained with k = {best_k}")
+            method_obj = KNN(k=best_k)
+
+        else:
+            print(f"Using user-defined k = {args.K}")
+            method_obj = KNN(k=args.K)
+
+    
     elif args.method == "kmeans":
         method_obj = KMeans(max_iters=500)
         
@@ -79,7 +116,12 @@ def main(args):
     # Unweighted training
     #preds_train = method_obj.fit(xtrain, ytrain)
     # Weighted training
-    preds_train = method_obj.fit(xtrain, ytrain, sample_weights_logireg)
+    # Use sample weights only for logistic regression
+    if args.method == "logistic_regression":
+        preds_train = method_obj.fit(xtrain, ytrain, sample_weights_logireg)
+    else:
+        preds_train = method_obj.fit(xtrain, ytrain)
+
     #####################################################################
     
     # Predict on unseen data
@@ -133,8 +175,16 @@ if __name__ == "__main__":
         action="store_true",
         help="train on whole training data and evaluate on the test data, otherwise use a validation set",
     )
-
-    # Feel free to add more arguments here if you need!
+    parser.add_argument(
+    "--cross_val",
+    action="store_true",
+    help="Enable K-fold cross-validation instead of evaluating on the test set"
+    )
+    parser.add_argument(
+    "--find_best_k",
+    action="store_true",
+    help="Test multiple K values using cross-validation to find the best one"
+)
 
     # MS2 arguments
     parser.add_argument(
