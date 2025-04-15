@@ -11,7 +11,7 @@ class LogisticRegression(object):
             max_iters (int): maximum number of iterations
         """
         self.max_iters = max_iters
-        self.weights = None  # Sample weights?
+        self.weights = None
         self.lr = lr
         
     def fit(self, training_data, training_labels, sample_weights=None):
