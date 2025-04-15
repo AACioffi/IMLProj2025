@@ -79,33 +79,21 @@ def preprocess_data_logireg(X_train, X_test=None):
 
 
 def calculate_sample_weights_logireg(y_train):
-    # Ensure labels are integers
+    # Ensure labels are integers (not sure whether that's necessary anymore? was used for debugging...)
     y_train = y_train.astype(int)
     
     class_counts = np.bincount(y_train.astype(int))
     total_samples = len(y_train)
     
-    #print("Unique classes:", np.unique(y_train))
-    #print("Class counts:", class_counts)
-    
     class_frequencies = class_counts / total_samples
-    #print("Class frequencies:", class_frequencies)
     
     # Compute weights (inverse of frequency)
     class_weights = 1 / class_frequencies
-    #print("Initial class weights:", class_weights)
     
     # Weight normalisation: they sum to the number of samples
     class_weights = (class_weights / np.sum(class_weights)) * total_samples
-    #print("Normalized class weights:", class_weights)
     
     # Mapping each sample to its corresponding class weight
     sample_weights = np.array([class_weights[int(label)] for label in y_train])
-    
-    #print("Sample weights statistics:")
-    #print("  Min:", np.min(sample_weights))
-    #print("  Max:", np.max(sample_weights))
-    #print("  Mean:", np.mean(sample_weights))
-    #print("  Sum:", np.sum(sample_weights))
     
     return sample_weights
