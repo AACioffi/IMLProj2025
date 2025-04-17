@@ -36,7 +36,7 @@ class KMeans(object):
         k = K_OPTIMAL
         N = training_data.shape[0]
 
-        rd_index = np.random.choice(N, size=k, replace=False)
+        rd_index = np.random.choice(N, size=k, replace=True)
         self.centroids = training_data[rd_index] #Initializing the k centroids to k random samples
         pred_centroids = np.zeros(N, dtype=int)
         for iteration in range(self.max_iters):
@@ -47,12 +47,16 @@ class KMeans(object):
                 pred_centroids[i] = np.argmin(distances)
             for i in range(k):
                 assigned = training_data[pred_centroids == i] #extracts all samples assigned to centroid i
+                if len(assigned) == 0:
+                    continue  # Skip update for empty cluster if data is not sufficient
                 self.centroids[i] = assigned.mean(axis=0)
 
         self.best_permutation = np.zeros(k)
         for i in range(k):
             cluster_labels = training_labels[pred_centroids == i] #extracts all labels contained in cluster i
             # Finds most common label in the cluster i and assigns it to best_permutation at index i
+            if len(cluster_labels) == 0:
+                continue  # Skip empty cluster if data is not sufficient
             self.best_permutation[i] = Counter(cluster_labels).most_common(1)[0][0]
 
         pred_labels = np.zeros(N)
