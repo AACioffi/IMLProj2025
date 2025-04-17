@@ -11,7 +11,8 @@ from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, m
 from logireg_preprocess_utils import preprocess_data_logireg
 from logireg_preprocess_utils import calculate_sample_weights_logireg
 from knn_preprocess_utils import preprocess_data_knn
-from src.cv_utils import cross_val_knn
+from kmeans_preprocess_utils import preprocess_data_kmeans
+from src.utils import cross_val_knn
 
 import os
 
@@ -76,8 +77,10 @@ def main(args):
         method_obj = KNN(k=args.K)
     
     elif args.method == "kmeans":
-        method_obj = KMeans(max_iters=500)
-        
+        # 1. Preprocess train and test
+        xtrain, xtest = preprocess_data_kmeans(xtrain), preprocess_data_kmeans(xtest)
+        method_obj = KMeans(max_iters=100)
+
     elif args.method == "logistic_regression":
         # Changing/overwriting args for modularity
         xtrain = xtrain_processed_logireg
@@ -98,6 +101,22 @@ def main(args):
     # Use sample weights only for logistic regression
     if args.method == "logistic_regression":
         preds_train = method_obj.fit(xtrain, ytrain, sample_weights_logireg)
+    elif args.method == "kmeans":
+        """
+        f1_max = 0
+        k = 0
+        for i in range(48, 100):
+            method_obj = KMeans(max_iters=100, k=i)
+            test_preds_train = method_obj.fit(xtrain, ytrain)
+            f1 = macrof1_fn(test_preds_train, ytrain)
+            if f1 > f1_max:
+                preds_train = test_preds_train
+                f1_max = f1
+                k = i
+        print(f1_max, k)
+        """
+
+        preds_train = method_obj.fit(xtrain, ytrain)
     else:
         preds_train = method_obj.fit(xtrain, ytrain)
 

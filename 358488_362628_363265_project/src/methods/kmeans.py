@@ -1,19 +1,21 @@
 import numpy as np
 from collections import Counter
 
+K_OPTIMAL = 48
 
 class KMeans(object):
     """
     kMeans classifier object.
     """
 
-    def __init__(self, max_iters=500):
+    def __init__(self, max_iters=500, k=5):
         """
         Call set_arguments function of this class.
         """
         self.max_iters = max_iters
         self.centroids = None
         self.best_permutation = None
+        self.k = k
 
     def fit(self, training_data, training_labels):
         """
@@ -28,8 +30,10 @@ class KMeans(object):
         Returns:
             pred_labels (np.array): labels of shape (N,)
         """
-
-        k = len(np.unique(training_labels)) #number of clusters
+        # number of clusters
+        #k = len(np.unique(training_labels))
+        #k = self.k
+        k = K_OPTIMAL
         N = training_data.shape[0]
 
         rd_index = np.random.choice(N, size=k, replace=False)
