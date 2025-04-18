@@ -51,7 +51,7 @@ def preprocess_data_logireg(X_train, X_test=None):
     # Finally, adding bias term
     processed_X_train = np.hstack((processed_X_train, np.ones((processed_X_train.shape[0], 1))))
     
-    # If test data is provided, preprocess it using training data statistics
+    # If test data is provided, preprocess it using training data statistics (optional for debugging reasons)
     if X_test is not None:
         # Same numerical scaling as before
         X_numerical_test = X_test[:, numerical_features['numerical_features_indices']]
