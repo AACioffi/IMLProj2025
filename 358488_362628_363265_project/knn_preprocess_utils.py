@@ -17,7 +17,7 @@ def preprocess_data_knn(X_train, X_test=None):
     }
     numerical_indices = [0, 3, 4, 7, 9, 11]
 
-    # --- Train ---
+    # Train
     X_num_train = X_train[:, numerical_indices]
     means = X_num_train.mean(axis=0, keepdims=True)
     stds = X_num_train.std(axis=0, keepdims=True)
@@ -31,7 +31,6 @@ def preprocess_data_knn(X_train, X_test=None):
     X_cat_train = np.hstack(X_cat_train)
     processed_train = np.hstack((X_num_train_scaled, X_cat_train))
 
-    # --- Optional Test ---
     if X_test is not None:
         X_num_test = X_test[:, numerical_indices]
         X_num_test_scaled = normalize_fn(X_num_test, means, stds)
