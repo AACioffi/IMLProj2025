@@ -19,15 +19,22 @@ def main(args):
     """
     ## 1. First, we load our data and flatten the images into vectors
     xtrain, xtest, ytrain, y_test = load_data()
-    xtrain = xtrain.reshape(xtrain.shape[0], -1)
-    xtest = xtest.reshape(xtest.shape[0], -1)
+    if args.nn_type == "mlp":
+        #can be changed if needed! i just assumed this
+        xtrain = xtrain.reshape(xtrain.shape[0], -1)
+        xtest = xtest.reshape(xtest.shape[0], -1)
+    elif args.nn_type == "cnn":
+        # Convert shape given by load_data(): (N, H, W, C) -> (N, C, H, W)
+        xtrain = np.transpose(xtrain, (0, 3, 1, 2))
+        xtest = np.transpose(xtest, (0, 3, 1, 2))
 
     ## 2. Then we must prepare it. This is were you can create a validation set,
     #  normalize, add bias, etc.
 
     # Make a validation set
     if not args.test:
-    ### WRITE YOUR CODE HERE
+        pass
+    ### WRITE YOUR CODE HERE (and erase pass)
 
 
     ### WRITE YOUR CODE HERE to do any other data processing
@@ -42,6 +49,9 @@ def main(args):
     n_classes = get_n_classes(ytrain)
     if args.nn_type == "mlp":
         model = ... ### WRITE YOUR CODE HERE
+    elif args.nn_type == "cnn":
+        input_channels = xtrain.shape[1]  # After transpose: should be 3 (RGB)
+        model = CNN(input_channels=input_channels, n_classes=n_classes)
 
     summary(model)
 
