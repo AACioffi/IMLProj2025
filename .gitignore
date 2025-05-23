@@ -177,3 +177,6 @@ cython_debug/
 logireg_experiments.py
 
 .idea/
+
+#MS1 directory
+358488_362628_363265_project_MS1/

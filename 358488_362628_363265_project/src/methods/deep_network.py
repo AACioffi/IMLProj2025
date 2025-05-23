@@ -1,3 +1,5 @@
+import math
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -68,11 +70,44 @@ class CNN(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        ### Goal: set the layers of the CNN
+        in_height = in_width = 28 # MNIST input size 28x28
+
+        ## 1) Convolutional Layer
+        # kernel_size = k => sliding window of k*k images
+        kernel_size = 5
+        # stride = k => (k-1) space between each pixel of the sliding window => capturing context
+        stride = 1
+        # padding => preserve spatial output size (height and width)
+        padding = math.floor((kernel_size - stride)/2)
+        # out_channels => number of features learned (feature map)
+        out_channels1 = 16
+        out_channels2 = 2*out_channels1 # after second conv layer
+        # first conv => output size: (N, 16, H, W)
+        self.conv1 = nn.Conv2d(input_channels, out_channels1, kernel_size=kernel_size, stride=stride, padding=padding)
+        # second conv => output: (N, 32, H/2, W/2) (spatial size change because of pooling after conv1)
+        # increase feature depth 16 -> 32 (out_channels)
+        self.conv2 = nn.Conv2d(out_channels1, out_channels2, kernel_size=kernel_size, stride=stride, padding=padding)
+
+
+        ## 2) Pooling Layer
+        pool_kernel_size = 2
+        pool_stride = 2
+        # after pooling => downsample by 2 => output size: (N, 16, H/2, W/2)
+        self.pool = nn.MaxPool2d(kernel_size=pool_kernel_size, stride=pool_stride)
+        # Final spatial size after 2 poolings
+        # Each pooling layer halves the height and width
+        pooled_height = in_height // (2 ** 2)  # 28 -> 14 -> 7
+        pooled_width = in_width // (2 ** 2)
+
+
+        ## 2) Fully Connected Layer
+        # flatten output of conv to feed to activation function and classify input
+        # flattened vector size is nb of features times spatial size after conv & pool output
+        in_features = out_channels2 * pooled_height * pooled_width  # 32 * 7 * 7 = 1568
+        neurons = 128 # = output size of FCL1 = input size of FCL2 = number of patterns recognized and valued
+        self.fc1 = nn.Linear(in_features, neurons)
+        self.fc2 = nn.Linear(neurons, n_classes)
 
     def forward(self, x):
         """
@@ -84,11 +119,18 @@ class CNN(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        ### Goal: make the data flow through the predefined layers
+
+        # applying 2 pooling layers
+        #apply activation function ReLu to break linearity of decision boundaries
+        x = self.pool(F.relu(self.conv1(x)))  # -> (N, 16, H/2, W/2)
+        x = self.pool(F.relu(self.conv2(x)))  # -> (N, 32, H/4, W/4)
+
+        # flatten tensor for FCL
+        x = x.view(x.size(0), -1)  # flatten except batch dimension (-1 => infer the rest of the dimensions to flatten)
+
+        x = F.relu(self.fc1(x))
+        preds = self.fc2(x)  # logits
         return preds
 
 
