@@ -15,7 +15,7 @@ class MLP(nn.Module):
     It should not use any convolutional layers.
     """
 
-    def __init__(self, input_size, n_classes):
+    def __init__(self, input_size, n_classes, n1=128, n2=64, n3=32):
         """
         Initialize the network.
 
@@ -27,11 +27,11 @@ class MLP(nn.Module):
             n_classes (int): number of classes to predict
         """
         super().__init__()
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        
+        self.l1 = nn.Linear(input_size, n1)
+        self.l2 = nn.Linear(n1, n2)
+        self.l3 = nn.Linear(n2, n3)
+        self.l4 = nn.Linear(n3, n_classes)
 
     def forward(self, x):
         """
@@ -43,11 +43,11 @@ class MLP(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        x = F.relu(self.l1(x))
+        x = F.relu(self.l2(x))
+        x = F.relu(self.l3(x))
+        preds = self.l4(x)  # logits
+        return preds
         return preds
 
 
@@ -157,7 +157,7 @@ class Trainer(object):
         self.batch_size = batch_size
 
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = ...  ### WRITE YOUR CODE HERE
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def train_all(self, dataloader):
         """
@@ -174,7 +174,7 @@ class Trainer(object):
 
             ### WRITE YOUR CODE HERE if you want to do add something else at each epoch
 
-    def train_one_epoch(self, dataloader, ep):
+    def train_one_epoch(self, dataloader, ep=None):
         """
         Train the model for ONE epoch.
 
@@ -184,22 +184,24 @@ class Trainer(object):
         Arguments:
             dataloader (DataLoader): dataloader for training data
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        self.model.train()
+
+        for batch_x, batch_y in dataloader:
+            batch_x = batch_x.to(torch.float32)
+            batch_y = batch_y.to(torch.long)
+
+            # Forward pass
+            logits = self.model(batch_x)
+            loss = self.criterion(logits, batch_y)
+
+            # Backprop + optimizer step
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
     def predict_torch(self, dataloader):
         """
         Predict the validation/test dataloader labels using the model.
-
-        Hints:
-            1. Don't forget to set your model to eval mode, i.e., self.model.eval()!
-            2. You can use torch.no_grad() to turn off gradient computation,
-            which can save memory and speed up computation. Simply write:
-                with torch.no_grad():
-                    # Write your code here.
 
         Arguments:
             dataloader (DataLoader): dataloader for validation/test data
@@ -207,11 +209,18 @@ class Trainer(object):
             pred_labels (torch.tensor): predicted labels of shape (N,),
                 with N the number of data points in the validation/test data.
         """
-        ##
-        ###
-        #### WRITE YOUR CODE HERE!
-        ###
-        ##
+        self.model.eval()
+        all_preds = []
+
+        with torch.no_grad():
+            for batch in dataloader:
+                # batch might be a tuple (data,)
+                batch_x = batch[0]
+                logits = self.model(batch_x.to(torch.float32))
+                preds = torch.argmax(logits, dim=1)
+                all_preds.append(preds)
+
+        pred_labels = torch.cat(all_preds, dim=0)
         return pred_labels
 
     def fit(self, training_data, training_labels):

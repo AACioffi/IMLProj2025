@@ -6,7 +6,8 @@ from torchinfo import summary
 from src.data import load_data
 from src.methods.deep_network import MLP, CNN, Trainer
 from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, get_n_classes
-
+from src.mlp_preproc_resources import preprocess_data_mlp
+from src.cnn_preproc_resources import preprocess_data_cnn
 
 def main(args):
     """
@@ -18,26 +19,36 @@ def main(args):
                           of this file). Their value can be accessed as "args.argument".
     """
     ## 1. First, we load our data and flatten the images into vectors
-    xtrain, xtest, ytrain, y_test = load_data()
+    xtrain_raw, xtest_raw, ytrain_raw, ytest_raw = load_data()
+
     if args.nn_type == "mlp":
-        #can be changed if needed! i just assumed this
-        xtrain = xtrain.reshape(xtrain.shape[0], -1)
-        xtest = xtest.reshape(xtest.shape[0], -1)
+        xtrain, ytrain, xval, yval, xtest, ytest, class_weights = preprocess_data_mlp(
+            xtrain_raw, xtest_raw, ytrain_raw, ytest_raw
+        )
     elif args.nn_type == "cnn":
-        # Convert shape given by load_data(): (N, H, W, C) -> (N, C, H, W)
-        xtrain = np.transpose(xtrain, (0, 3, 1, 2))
-        xtest = np.transpose(xtest, (0, 3, 1, 2))
+        xtrain, ytrain, xval, yval, xtest, ytest, class_weights = preprocess_data_cnn(
+            xtrain_raw, xtest_raw, ytrain_raw, ytest_raw
+        )
+    else:
+        raise ValueError("Unknown --nn_type. Use 'mlp' or 'cnn'")
 
     ## 2. Then we must prepare it. This is were you can create a validation set,
     #  normalize, add bias, etc.
 
     # Make a validation set
-    if not args.test:
-        pass
-    ### WRITE YOUR CODE HERE (and erase pass)
+    if args.test:
+        # Concatenate training + validation
+        xtrain_full = np.concatenate([xtrain, xval], axis=0)
+        ytrain_full = np.concatenate([ytrain, yval], axis=0)
 
+        preds_train = method_obj.fit(xtrain_full, ytrain_full)
+        preds_eval = method_obj.predict(xtest)
+        y_eval = ytest
 
-    ### WRITE YOUR CODE HERE to do any other data processing
+    else:
+        preds_train = method_obj.fit(xtrain, ytrain)
+        preds_eval = method_obj.predict(xval)
+        y_eval = yval
 
 
     ## 3. Initialize the method you want to use.
@@ -46,9 +57,10 @@ def main(args):
 
     # Prepare the model (and data) for Pytorch
     # Note: you might need to reshape the data depending on the network you use!
-    n_classes = get_n_classes(ytrain)
+    n_classes = len(np.unique(ytrain))
     if args.nn_type == "mlp":
-        model = ... ### WRITE YOUR CODE HERE
+        input_size = xtrain.shape[1]  # should be 28*28*3 = 2352
+        model = MLP(input_size=input_size, n_classes=n_classes)
     elif args.nn_type == "cnn":
         input_channels = xtrain.shape[1]  # After transpose: should be 3 (RGB)
         model = CNN(input_channels=input_channels, n_classes=n_classes)
@@ -56,8 +68,12 @@ def main(args):
     summary(model)
 
     # Trainer object
-    method_obj = Trainer(model, lr=args.lr, epochs=args.max_iters, batch_size=args.nn_batch_size)
-
+    method_obj = Trainer(
+        model=model,
+        lr=args.lr,
+        epochs=args.max_iters,
+        batch_size=args.nn_batch_size,
+    )
 
     ## 4. Train and evaluate the method
 
@@ -69,15 +85,16 @@ def main(args):
 
     ## Report results: performance on train and valid/test sets
     acc = accuracy_fn(preds_train, ytrain)
-    macrof1 = macrof1_fn(preds_train, ytrain)
-    print(f"\nTrain set: accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+    f1_train = macrof1_fn(preds_train, ytrain)
+    print(f"\nTrain set: accuracy = {acc_train:.2f}% - F1-score = {f1_train:.4f}")
 
 
     ## As there are no test dataset labels, check your model accuracy on validation dataset.
     # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
-    acc = accuracy_fn(preds, xtest)
-    macrof1 = macrof1_fn(preds, xtest)
-    print(f"Validation set:  accuracy = {acc:.3f}% - F1-score = {macrof1:.6f}")
+    acc_eval = accuracy_fn(preds_eval, y_eval)
+    f1_eval = macrof1_fn(preds_eval, y_eval)
+    set_type = "Test set" if args.test else "Validation set"
+    print(f"{set_type}: accuracy = {acc_eval:.2f}% - F1-score = {f1_eval:.4f}")
 
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
