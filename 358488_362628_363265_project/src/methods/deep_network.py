@@ -15,7 +15,45 @@ class MLP(nn.Module):
     It should not use any convolutional layers.
     """
 
+    # Original implementation	
+    """
     def __init__(self, input_size, n_classes, n1=128, n2=64, n3=32):
+        '''
+        Initialize the network.
+
+        You can add arguments if you want, but WITH a default value, e.g.:
+            __init__(self, input_size, n_classes, my_arg=32)
+
+        Arguments:
+            input_size (int): size of the input
+            n_classes (int): number of classes to predict
+        '''
+        super().__init__()
+        
+        self.l1 = nn.Linear(input_size, n1)
+        self.l2 = nn.Linear(n1, n2)
+        self.l3 = nn.Linear(n2, n3)
+        self.l4 = nn.Linear(n3, n_classes)
+
+    def forward(self, x):
+        '''
+        Predict the class of a batch of samples with the model.
+
+        Arguments:
+            x (tensor): input batch of shape (N, D)
+        Returns:
+            preds (tensor): logits of predictions of shape (N, C)
+                Reminder: logits are value pre-softmax.
+        '''
+        x = F.relu(self.l1(x))
+        x = F.relu(self.l2(x))
+        x = F.relu(self.l3(x))
+        preds = self.l4(x)  # logits
+        return preds
+    """
+    
+    # Simplified model for initial testing
+    def __init__(self, input_size, n_classes, n1=256, n2=128):
         """
         Initialize the network.
 
@@ -30,8 +68,7 @@ class MLP(nn.Module):
         
         self.l1 = nn.Linear(input_size, n1)
         self.l2 = nn.Linear(n1, n2)
-        self.l3 = nn.Linear(n2, n3)
-        self.l4 = nn.Linear(n3, n_classes)
+        self.l3 = nn.Linear(n2, n_classes)
 
     def forward(self, x):
         """
@@ -45,9 +82,7 @@ class MLP(nn.Module):
         """
         x = F.relu(self.l1(x))
         x = F.relu(self.l2(x))
-        x = F.relu(self.l3(x))
-        preds = self.l4(x)  # logits
-        return preds
+        preds = self.l3(x)  # logits
         return preds
 
 
@@ -141,7 +176,7 @@ class Trainer(object):
     It will also serve as an interface between numpy and pytorch.
     """
 
-    def __init__(self, model, lr, epochs, batch_size):
+    def __init__(self, model, lr, epochs, batch_size, class_weights=None):
         """
         Initialize the trainer object for a given model.
 
@@ -150,13 +185,16 @@ class Trainer(object):
             lr (float): learning rate for the optimizer
             epochs (int): number of epochs of training
             batch_size (int): number of data points in each batch
+            class_weights (array): class weights, used to handle class imbalance
         """
         self.lr = lr
         self.epochs = epochs
         self.model = model
         self.batch_size = batch_size
-
-        self.criterion = nn.CrossEntropyLoss()
+        if class_weights is not None:
+            self.criterion = nn.CrossEntropyLoss(weight=torch.tensor(class_weights).float())
+        else:
+            self.criterion = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
 
     def train_all(self, dataloader):

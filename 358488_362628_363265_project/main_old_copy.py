@@ -29,6 +29,7 @@ def main(args):
         xtrain, ytrain, xval, yval, xtest, ytest, class_weights = preprocess_data_cnn(
             xtrain_raw, xtest_raw, ytrain_raw, ytest_raw
         )
+	
     else:
         raise ValueError("Unknown --nn_type. Use 'mlp' or 'cnn'")
 
@@ -38,17 +39,27 @@ def main(args):
     # Make a validation set
     if args.test:
         # Concatenate training + validation
-        train_data = np.concatenate([xtrain, xval], axis=0)
-        train_labels = np.concatenate([ytrain, yval], axis=0)
-        eval_data = xtest
-        eval_labels = ytest
-        set_type = "Test set"
+        xtrain_full = np.concatenate([xtrain, xval], axis=0)
+        ytrain_full = np.concatenate([ytrain, yval], axis=0)
+	
+	eval_data   = xtest
+	eval_labels = ytest
+	# PROBLEMATIC: why predict when we haven't even initialised the model?
+        # preds_train = method_obj.fit(xtrain_full, ytrain_full)
+        # preds_eval = method_obj.predict(xtest)
+        # y_eval = ytest
+
     else:
-        train_data = xtrain
-        train_labels = ytrain
-        eval_data = xval
-        eval_labels = yval
-        set_type = "Validation set"
+
+	xtrain_full = xtrain
+	ytrain_full = ytrain
+	eval_data   = xval
+	eval_labels = yval
+	# PROBLEMATIC: why predict when we haven't even initalised the model?
+        # preds_train = method_obj.fit(xtrain, ytrain)
+        # preds_eval = method_obj.predict(xval)
+        # y_eval = yval
+
 
     ## 3. Initialize the method you want to use.
 
@@ -72,28 +83,30 @@ def main(args):
         lr=args.lr,
         epochs=args.max_iters,
         batch_size=args.nn_batch_size,
-        class_weights=class_weights
+	class_weights=class_weights
     )
 
     ## 4. Train and evaluate the method
 
     # Fit (:=train) the method on the training data
-    preds_train = method_obj.fit(train_data, train_labels)
+    preds_train = method_obj.fit(xtrain_full, ytrain_full)
 
     # Predict on unseen data
-    preds_eval = method_obj.predict(eval_data)
+    preds = method_obj.predict(eval_data)
 
     ## Report results: performance on train and valid/test sets
-    acc_train = accuracy_fn(preds_train, train_labels)
-    f1_train = macrof1_fn(preds_train, train_labels)
+    acc_train = accuracy_fn(preds_train, ytrain_full)
+    f1_train = macrof1_fn(preds_train, ytrain_full)
     print(f"\nTrain set: accuracy = {acc_train:.2f}% - F1-score = {f1_train:.4f}")
 
 
     ## As there are no test dataset labels, check your model accuracy on validation dataset.
     # You can check your model performance on test set by submitting your test set predictions on the AIcrowd competition.
-    acc_eval = accuracy_fn(preds_eval, eval_labels)
-    f1_eval = macrof1_fn(preds_eval, eval_labels)
+    acc_eval = accuracy_fn(preds_eval, y_eval)
+    f1_eval = macrof1_fn(preds_eval, y_eval)
+    set_type = "Test set" if args.test else "Validation set"
     print(f"{set_type}: accuracy = {acc_eval:.2f}% - F1-score = {f1_eval:.4f}")
+
 
     ### WRITE YOUR CODE HERE if you want to add other outputs, visualization, etc.
 
@@ -112,10 +125,12 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default="cpu",
                         help="Device to use for the training, it can be 'cpu' | 'cuda' | 'mps'")
 
+
     parser.add_argument('--lr', type=float, default=1e-5, help="learning rate for methods with learning rate")
     parser.add_argument('--max_iters', type=int, default=100, help="max iters for methods which are iterative")
     parser.add_argument('--test', action="store_true",
                         help="train on whole training data and evaluate on the test data, otherwise use a validation set")
+
 
     # "args" will keep in memory the arguments and their values,
     # which can be accessed as "args.data", for example.

@@ -1,5 +1,5 @@
 import numpy as np
-from data import load_data
+from src.data import load_data
 
 
 # Load and inspect raw data
