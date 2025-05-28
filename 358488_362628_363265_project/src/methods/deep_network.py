@@ -120,9 +120,14 @@ class CNN(nn.Module):
         out_channels2 = 2*out_channels1 # after second conv layer
         # first conv => output size: (N, 16, H, W)
         self.conv1 = nn.Conv2d(input_channels, out_channels1, kernel_size=kernel_size, stride=stride, padding=padding)
+
+        self.bn1   = nn.BatchNorm2d(out_channels1) #try with batch normalization
+
         # second conv => output: (N, 32, H/2, W/2) (spatial size change because of pooling after conv1)
         # increase feature depth 16 -> 32 (out_channels)
         self.conv2 = nn.Conv2d(out_channels1, out_channels2, kernel_size=kernel_size, stride=stride, padding=padding)
+
+        self.bn2   = nn.BatchNorm2d(out_channels2) #try with batch normalization
 
 
         ## 2) Pooling Layer
@@ -142,6 +147,9 @@ class CNN(nn.Module):
         in_features = out_channels2 * pooled_height * pooled_width  # 32 * 7 * 7 = 1568
         neurons = 128 # = output size of FCL1 = input size of FCL2 = number of patterns recognized and valued
         self.fc1 = nn.Linear(in_features, neurons)
+
+        self.dropout = nn.Dropout(p=0.5) #try with dropout
+
         self.fc2 = nn.Linear(neurons, n_classes)
 
     def forward(self, x):
@@ -158,13 +166,14 @@ class CNN(nn.Module):
 
         # applying 2 pooling layers
         #apply activation function ReLu to break linearity of decision boundaries
-        x = self.pool(F.relu(self.conv1(x)))  # -> (N, 16, H/2, W/2)
-        x = self.pool(F.relu(self.conv2(x)))  # -> (N, 32, H/4, W/4)
+        x = self.pool(F.relu(self.bn1(self.conv1(x))))  # -> (N, 16, H/2, W/2)
+        x = self.pool(F.relu(self.bn2(self.conv2(x))))  # -> (N, 32, H/4, W/4)
 
         # flatten tensor for FCL
         x = x.view(x.size(0), -1)  # flatten except batch dimension (-1 => infer the rest of the dimensions to flatten)
 
         x = F.relu(self.fc1(x))
+        x = self.dropout(x) #try with dropout
         preds = self.fc2(x)  # logits
         return preds
 

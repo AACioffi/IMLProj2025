@@ -29,6 +29,16 @@ def main(args):
         xtrain, ytrain, xval, yval, xtest, ytest, class_weights = preprocess_data_cnn(
             xtrain_raw, xtest_raw, ytrain_raw, ytest_raw
         )
+        # —————————————————————————————————————————————————————————————
+        # sanity‐checks:
+        print("Train images shape:", xtrain.shape)  # (N, C, H, W) for CNN
+        print("Validation images shape:", xval.shape)
+        print("Test images shape: ", xtest.shape)
+
+        print("Class counts:", np.bincount(ytrain.astype(int)))
+        print("Class weights:", class_weights)
+        # —————————————————————————————————————————————————————————————
+
     else:
         raise ValueError("Unknown --nn_type. Use 'mlp' or 'cnn'")
 
@@ -112,8 +122,8 @@ if __name__ == '__main__':
     parser.add_argument('--device', type=str, default="cpu",
                         help="Device to use for the training, it can be 'cpu' | 'cuda' | 'mps'")
 
-    parser.add_argument('--lr', type=float, default=1e-5, help="learning rate for methods with learning rate")
-    parser.add_argument('--max_iters', type=int, default=100, help="max iters for methods which are iterative")
+    parser.add_argument('--lr', type=float, default=1e-3, help="Learning rate (try 1e-3 or 1e-4)")
+    parser.add_argument('--max_iters', type=int, default=100, help="Number of epochs (try 30–50 for CNN)")
     parser.add_argument('--test', action="store_true",
                         help="train on whole training data and evaluate on the test data, otherwise use a validation set")
 
