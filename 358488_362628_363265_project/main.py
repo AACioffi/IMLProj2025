@@ -25,6 +25,16 @@ def main(args):
         xtrain, ytrain, xval, yval, xtest, ytest, class_weights = preprocess_data_mlp(
             xtrain_raw, xtest_raw, ytrain_raw, ytest_raw
         )
+        '''
+        print(f"MLP DEBUG PRINTS")
+        print(f"Input shape: {xtrain.shape}")
+        print(f"Labels shape: {ytrain.shape}")
+        print(f"Input range: [{xtrain.min():.3f}, {xtrain.max():.3f}]")
+        print(f"Label range: [{ytrain.min()}, {ytrain.max()}]")
+        print(f"Unique labels: {np.unique(ytrain)}")
+        print(f"Class distribution: {np.bincount(ytrain.astype(int))}")
+        print(f"Class weights: {class_weights}")
+        '''
     elif args.nn_type == "cnn":
         xtrain, ytrain, xval, yval, xtest, ytest, class_weights = preprocess_data_cnn(
             xtrain_raw, xtest_raw, ytrain_raw, ytest_raw

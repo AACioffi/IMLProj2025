@@ -1,7 +1,7 @@
 import numpy as np
 from src.data import load_data
 
-
+'''
 # Load and inspect raw data
 train_images, test_images, train_labels, test_labels = load_data()
 
@@ -23,7 +23,7 @@ for c in extracted_classes:
     print(f'{c}')
 print(f'Number of classes: {n_classes}')
 print(f'Class counts: {class_counts}')
-
+'''
 
 def preprocess_data_mlp(train_images, test_images, train_labels, test_labels):
     """
@@ -94,8 +94,10 @@ def preprocess_data_mlp(train_images, test_images, train_labels, test_labels):
     # Class weights for imbalance
     class_counts = np.bincount(train_set_labels.astype(int))
     total_samples = len(train_set_labels)
-    raw_weights = total_samples / class_counts
-    normalised_weights = raw_weights * (n_classes / np.sum(raw_weights))
+
+    raw_weights = total_samples / (n_classes * class_counts)
+    class_weights = np.power(raw_weights, 1/3)  # Cube root weighting
+    normalised_weights = class_weights / np.mean(class_weights)
 
     return (
         train_set_datapoints,
@@ -104,5 +106,5 @@ def preprocess_data_mlp(train_images, test_images, train_labels, test_labels):
         validation_set_labels,
         proc_test_images,
         test_labels,
-        normalised_weights,
+        normalised_weights
     )

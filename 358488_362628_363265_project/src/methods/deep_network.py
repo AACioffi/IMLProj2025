@@ -14,46 +14,7 @@ class MLP(nn.Module):
 
     It should not use any convolutional layers.
     """
-
-    # Original implementation	
-    """
-    def __init__(self, input_size, n_classes, n1=128, n2=64, n3=32):
-        '''
-        Initialize the network.
-
-        You can add arguments if you want, but WITH a default value, e.g.:
-            __init__(self, input_size, n_classes, my_arg=32)
-
-        Arguments:
-            input_size (int): size of the input
-            n_classes (int): number of classes to predict
-        '''
-        super().__init__()
-        
-        self.l1 = nn.Linear(input_size, n1)
-        self.l2 = nn.Linear(n1, n2)
-        self.l3 = nn.Linear(n2, n3)
-        self.l4 = nn.Linear(n3, n_classes)
-
-    def forward(self, x):
-        '''
-        Predict the class of a batch of samples with the model.
-
-        Arguments:
-            x (tensor): input batch of shape (N, D)
-        Returns:
-            preds (tensor): logits of predictions of shape (N, C)
-                Reminder: logits are value pre-softmax.
-        '''
-        x = F.relu(self.l1(x))
-        x = F.relu(self.l2(x))
-        x = F.relu(self.l3(x))
-        preds = self.l4(x)  # logits
-        return preds
-    """
-    
-    # Simplified model for initial testing
-    def __init__(self, input_size, n_classes, n1=256, n2=128):
+    def __init__(self, input_size, n_classes, n1=384, n2=384):
         """
         Initialize the network.
 
@@ -80,8 +41,8 @@ class MLP(nn.Module):
             preds (tensor): logits of predictions of shape (N, C)
                 Reminder: logits are value pre-softmax.
         """
-        x = F.relu(self.l1(x))
-        x = F.relu(self.l2(x))
+        x = F.dropout(F.gelu(self.l1(x)), p=0.2)
+        x = F.dropout(F.gelu(self.l2(x)), p=0.2)
         preds = self.l3(x)  # logits
         return preds
 
@@ -217,7 +178,7 @@ class Trainer(object):
             dataloader (DataLoader): dataloader for training data
         """
         for ep in range(self.epochs):
-            self.train_one_epoch(dataloader)
+            self.train_one_epoch(dataloader, ep)
 
             ### WRITE YOUR CODE HERE if you want to do add something else at each epoch
 
@@ -233,6 +194,11 @@ class Trainer(object):
         """
         self.model.train()
 
+        # Tracking variables
+        total_loss = 0
+        correct = 0
+        total = 0
+        
         for batch_x, batch_y in dataloader:
             batch_x = batch_x.to(torch.float32)
             batch_y = batch_y.to(torch.long)
@@ -245,6 +211,17 @@ class Trainer(object):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
+             # Track metrics
+            total_loss += loss.item()
+            _, predicted = torch.max(logits.data, 1)
+            total += batch_y.size(0)
+            correct += (predicted == batch_y).sum().item()
+    
+        if ep is not None and ep % 10 == 0:  # Print every 10 epochs
+            accuracy = 100 * correct / total
+            avg_loss = total_loss / len(dataloader)
+            print(f'Epoch {ep}: Loss = {avg_loss:.4f}, Accuracy = {accuracy:.2f}%')
 
     def predict_torch(self, dataloader):
         """
