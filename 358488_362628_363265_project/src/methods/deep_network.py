@@ -90,25 +90,19 @@ class CNN(nn.Module):
         # increase feature depth 16 -> 32 (out_channels)
         self.conv2 = nn.Conv2d(out_channels1, 2*out_channels1, kernel_size=kernel_size, stride=stride, padding=padding)
 
-        self.bn2   = nn.BatchNorm2d(out_channels2) #try with batch normalization
+        self.bn2   = nn.BatchNorm2d(out_channels2)
 
         self.conv3 = nn.Conv2d(out_channels2, out_channels3, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.bn3 = nn.BatchNorm2d(out_channels3)  # try with batch normalization
+        self.bn3 = nn.BatchNorm2d(out_channels3)
 
         self.conv4 = nn.Conv2d(out_channels3, out_channels4, kernel_size=kernel_size, stride=stride, padding=padding)
-        self.bn4 = nn.BatchNorm2d(out_channels4)  # try with batch normalization
-
+        self.bn4 = nn.BatchNorm2d(out_channels4)
 
         ## 2) Pooling Layer
         pool_kernel_size = 2
         pool_stride = 2
         # after pooling => downsample by 2 => output size: (N, 16, H/2, W/2)
         self.pool = nn.MaxPool2d(kernel_size=pool_kernel_size, stride=pool_stride)
-        # Final spatial size after 2 poolings
-        # Each pooling layer halves the height and width
-        pooled_height = in_height // (2 ** 2)  # 28 -> 14 -> 7
-        pooled_width = in_width // (2 ** 2)
-
 
         ## 2) Fully Connected Layer
         # flatten output of conv to feed to activation function and classify input
