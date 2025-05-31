@@ -9,6 +9,20 @@ from src.utils import normalize_fn, append_bias_term, accuracy_fn, macrof1_fn, g
 from src.mlp_preproc_resources import preprocess_data_mlp
 from src.cnn_preproc_resources import preprocess_data_cnn
 
+
+import random
+import torch
+
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+set_seed(42)
+
 def main(args):
     """
     The main function of the script. Do not hesitate to play with it

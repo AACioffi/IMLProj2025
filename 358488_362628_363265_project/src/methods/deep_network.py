@@ -79,6 +79,8 @@ class CNN(nn.Module):
         # out_channels => number of features learned (feature map)
         out_channels1 = 16
         out_channels2 = 2*out_channels1 # after second conv layer
+        out_channels3 = 2*out_channels2
+        out_channels4 = 2*out_channels3
         # first conv => output size: (N, 16, H, W)
         self.conv1 = nn.Conv2d(input_channels, out_channels1, kernel_size=kernel_size, stride=stride, padding=padding)
 
@@ -86,9 +88,15 @@ class CNN(nn.Module):
 
         # second conv => output: (N, 32, H/2, W/2) (spatial size change because of pooling after conv1)
         # increase feature depth 16 -> 32 (out_channels)
-        self.conv2 = nn.Conv2d(out_channels1, out_channels2, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.conv2 = nn.Conv2d(out_channels1, 2*out_channels1, kernel_size=kernel_size, stride=stride, padding=padding)
 
         self.bn2   = nn.BatchNorm2d(out_channels2) #try with batch normalization
+
+        self.conv3 = nn.Conv2d(out_channels2, out_channels3, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.bn3 = nn.BatchNorm2d(out_channels3)  # try with batch normalization
+
+        self.conv4 = nn.Conv2d(out_channels3, out_channels4, kernel_size=kernel_size, stride=stride, padding=padding)
+        self.bn4 = nn.BatchNorm2d(out_channels4)  # try with batch normalization
 
 
         ## 2) Pooling Layer
@@ -105,11 +113,21 @@ class CNN(nn.Module):
         ## 2) Fully Connected Layer
         # flatten output of conv to feed to activation function and classify input
         # flattened vector size is nb of features times spatial size after conv & pool output
-        in_features = out_channels2 * pooled_height * pooled_width  # 32 * 7 * 7 = 1568
+        in_features = 0
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, input_channels, 28, 28)
+            x = self.pool(F.relu(self.bn1(self.conv1(dummy_input))))
+            x = self.pool(F.relu(self.bn2(self.conv2(x))))
+            x = self.pool(F.relu(self.bn3(self.conv3(x))))
+            x = self.pool(F.relu(self.bn4(self.conv4(x))))
+            in_features = x.view(1, -1).shape[1]
+
         neurons = 128 # = output size of FCL1 = input size of FCL2 = number of patterns recognized and valued
         self.fc1 = nn.Linear(in_features, neurons)
 
-        self.dropout = nn.Dropout(p=0.5) #try with dropout
+        # Drop out to minimize overfitting and encourage generalization
+        self.drop2d = nn.Dropout2d(p=0.2)
+        self.dropout = nn.Dropout(p=0.5)
 
         self.fc2 = nn.Linear(neurons, n_classes)
 
@@ -127,8 +145,10 @@ class CNN(nn.Module):
 
         # applying 2 pooling layers
         #apply activation function ReLu to break linearity of decision boundaries
-        x = self.pool(F.relu(self.bn1(self.conv1(x))))  # -> (N, 16, H/2, W/2)
-        x = self.pool(F.relu(self.bn2(self.conv2(x))))  # -> (N, 32, H/4, W/4)
+        x = self.pool(F.relu(self.bn1(self.conv1(x))))
+        x = self.pool(F.relu(self.bn2(self.conv2(x))))
+        x = self.pool(self.drop2d(F.relu(self.bn3(self.conv3(x)))))
+        x = self.pool(F.relu(self.bn4(self.conv4(x))))
 
         # flatten tensor for FCL
         x = x.view(x.size(0), -1)  # flatten except batch dimension (-1 => infer the rest of the dimensions to flatten)
