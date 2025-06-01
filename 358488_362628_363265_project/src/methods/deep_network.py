@@ -67,7 +67,6 @@ class CNN(nn.Module):
         """
         super().__init__()
         ### Goal: set the layers of the CNN
-        in_height = in_width = 28 # DermaMNIST input size 28x28 (given)
 
         ## 1) Convolutional Layer
         # kernel_size = k => sliding window of k*k images
