@@ -8,4 +8,6 @@ This repository contains code for EPFL's Introduction to Machine Learning (CS-23
 If you are a student of the course, we highly discourage reading the content of this repo until you have implemented the methods yourself. Not doing so, and taking inspiration from our implementations, could result in plagiarism.
 We do not take responsibility for any cases of plagiarism.
 
+**TO THE CS-233 TEACHING TEAM:** The repository visibility change was authorised by staff member Saqib Javed (Spring 2025 course iteration). See image "PublicRepo-Authorisation-Proof.PNG" at the root of the repo.
+
 © 2025 All Rights Reserved
